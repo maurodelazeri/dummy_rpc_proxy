@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -98,4 +99,30 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("X-Content-Type-Options", "nosniff")
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	io.WriteString(rw, string(respBody))
+}
+
+func healthzHandler(rw http.ResponseWriter, r *http.Request) {
+	if atomic.LoadInt32(&healthy) == 1 {
+		rw.Header().Set("X-Content-Type-Options", "nosniff")
+		rw.Header().Set("Content-Type", "application/json; charset=utf-8")
+		io.WriteString(rw, `{"alive": true}`)
+		return
+	}
+	rw.WriteHeader(http.StatusServiceUnavailable)
+}
+
+func make_it_failHandler(rw http.ResponseWriter, r *http.Request) {
+	atomic.StoreInt32(&healthy, 0)
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("X-Content-Type-Options", "nosniff")
+	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(rw, `{"done": "requests will return 503}`)
+}
+
+func make_it_workHandler(rw http.ResponseWriter, r *http.Request) {
+	atomic.StoreInt32(&healthy, 1)
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("X-Content-Type-Options", "nosniff")
+	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(rw, `{"done": "requests will return 200}`)
 }

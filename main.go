@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync/atomic"
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -14,10 +15,13 @@ type QuiknodeProxy struct {
 }
 
 var (
+	healthy        int32
 	quiknode_proxy QuiknodeProxy
 )
 
 func init() {
+	atomic.StoreInt32(&healthy, 1)
+
 	app_port, ok := os.LookupEnv("APP_PORT")
 	if !ok {
 		fmt.Println("APP_PORT is not present")
@@ -35,6 +39,9 @@ func init() {
 func main() {
 	router := mux.NewRouter().StrictSlash(false)
 	router.HandleFunc("/", proxyHandler)
+	router.HandleFunc("/healthz", healthzHandler)
+	router.HandleFunc("/make_it_fail", make_it_failHandler)
+	router.HandleFunc("/make_it_work", make_it_workHandler)
 	n := negroni.New(
 		negroni.NewRecovery(),
 		negroni.NewLogger(),
