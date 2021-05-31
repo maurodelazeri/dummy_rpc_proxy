@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sync/atomic"
 	"time"
 
@@ -54,12 +55,17 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)
+
+		version, ok := os.LookupEnv("APP_VERSION")
+		if ok {
+			rw.Header().Set("App-Version", version)
+		}
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("X-Content-Type-Options", "nosniff")
 		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(rw, string(cresb))
-
 		return
+
 	}
 	if r.Method != "POST" {
 		logrus.Error("wrong method, only POST available.")
@@ -69,6 +75,10 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)
+		version, ok := os.LookupEnv("APP_VERSION")
+		if ok {
+			rw.Header().Set("App-Version", version)
+		}
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("X-Content-Type-Options", "nosniff")
 		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -80,20 +90,40 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal(request_payload)
 
 	// #### Passing to the client the req ######
-	respBody, err := httpPost(quiknode_proxy.downstream_client_addr, data)
+
+	downstream := quiknode_proxy.downstream_fast_rpc_client_addr
+	network, ok := os.LookupEnv("NETWORK")
+	if ok {
+		if network == "mainnet" {
+			if request_payload.Method == "eth_getBalance" {
+				downstream = quiknode_proxy.downstream_archive_rpc_client_addr
+			}
+		}
+	}
+
+	respBody, err := httpPost(downstream, data)
 	if err != nil {
 		logrus.Error("Problem to connect to the local client: ", err.Error())
-		cbody := json.RawMessage(err.Error())
+		cbody := json.RawMessage(`{"code":-32000,"message":"problem to connect downstream"}`)
 		var cresp = Response{
 			JSONRPC: "2.0",
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)
+		version, ok := os.LookupEnv("APP_VERSION")
+		if ok {
+			rw.Header().Set("App-Version", version)
+		}
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("X-Content-Type-Options", "nosniff")
 		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		logrus.Infoln("what is here", string(cresb))
 		io.WriteString(rw, string(cresb))
 		return
+	}
+	version, ok := os.LookupEnv("APP_VERSION")
+	if ok {
+		rw.Header().Set("App-Version", version)
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Header().Set("X-Content-Type-Options", "nosniff")
@@ -103,6 +133,10 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 
 func healthzHandler(rw http.ResponseWriter, r *http.Request) {
 	if atomic.LoadInt32(&healthy) == 1 {
+		version, ok := os.LookupEnv("APP_VERSION")
+		if ok {
+			rw.Header().Set("App-Version", version)
+		}
 		rw.Header().Set("X-Content-Type-Options", "nosniff")
 		rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 		io.WriteString(rw, `{"alive": true}`)
@@ -113,6 +147,10 @@ func healthzHandler(rw http.ResponseWriter, r *http.Request) {
 
 func make_it_failHandler(rw http.ResponseWriter, r *http.Request) {
 	atomic.StoreInt32(&healthy, 0)
+	version, ok := os.LookupEnv("APP_VERSION")
+	if ok {
+		rw.Header().Set("App-Version", version)
+	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Header().Set("X-Content-Type-Options", "nosniff")
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -121,6 +159,10 @@ func make_it_failHandler(rw http.ResponseWriter, r *http.Request) {
 
 func make_it_workHandler(rw http.ResponseWriter, r *http.Request) {
 	atomic.StoreInt32(&healthy, 1)
+	version, ok := os.LookupEnv("APP_VERSION")
+	if ok {
+		rw.Header().Set("App-Version", version)
+	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Header().Set("X-Content-Type-Options", "nosniff")
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")

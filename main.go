@@ -10,8 +10,11 @@ import (
 )
 
 type QuiknodeProxy struct {
-	app_port               string
-	downstream_client_addr string
+	app_port                           string
+	downstream_fast_rpc_client_addr    string
+	downstream_fast_ws_client_addr     string
+	downstream_archive_rpc_client_addr string
+	downstream_archive_ws_client_addr  string
 }
 
 var (
@@ -27,13 +30,36 @@ func init() {
 		fmt.Println("APP_PORT is not present")
 		os.Exit(1)
 	}
-	downstream_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM")
+	quiknode_proxy.app_port = app_port
+
+	// Archive fast
+	downstream_fast_rpc_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_FAST_RPC")
 	if !ok {
-		fmt.Println("CLIENT_DOWN_STREAM is not present")
+		fmt.Println("CLIENT_DOWN_STREAM_FAST_RPC is not present")
 		os.Exit(1)
 	}
-	quiknode_proxy.app_port = app_port
-	quiknode_proxy.downstream_client_addr = downstream_client_addr
+	quiknode_proxy.downstream_fast_rpc_client_addr = downstream_fast_rpc_client_addr
+
+	downstream_fast_ws_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_FAST_WS")
+	if !ok {
+		fmt.Println("CLIENT_DOWN_STREAM_FAST_WS is not present")
+		os.Exit(1)
+	}
+	quiknode_proxy.downstream_fast_ws_client_addr = downstream_fast_ws_client_addr
+
+	// Archive mode
+	downstream_archive_rpc_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_ARCHIVE_RPC")
+	if !ok {
+		fmt.Println("CLIENT_DOWN_STREAM_ARCHIVE_RPC is not present")
+	}
+	quiknode_proxy.downstream_archive_rpc_client_addr = downstream_archive_rpc_client_addr
+
+	downstream_archive_ws_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_ARCHIVE_WS")
+	if !ok {
+		fmt.Println("CLIENT_DOWN_STREAM_ARCHIVE_WS is not present")
+	}
+	quiknode_proxy.downstream_archive_ws_client_addr = downstream_archive_ws_client_addr
+
 }
 
 func main() {
