@@ -51,7 +51,7 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 		logrus.Error("wrong method, only POST available.")
 		cbody := json.RawMessage(`{"code":-32000,"message":"not able to decode body"}`)
 		var cresp = Response{
-			JSONRPC: "2.0",
+			Jsonrpc: "2.0",
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)
@@ -71,7 +71,7 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 		logrus.Error("wrong method, only POST available.")
 		cbody := json.RawMessage(`{"code":-32000,"message":"wrong method, only POST available"}`)
 		var cresp = Response{
-			JSONRPC: "2.0",
+			Jsonrpc: "2.0",
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)
@@ -106,7 +106,7 @@ func proxyHandler(rw http.ResponseWriter, r *http.Request) {
 		logrus.Error("Problem to connect to the local client: ", err.Error())
 		cbody := json.RawMessage(`{"code":-32000,"message":"problem to connect downstream"}`)
 		var cresp = Response{
-			JSONRPC: "2.0",
+			Jsonrpc: "2.0",
 			Error:   cbody,
 		}
 		cresb, _ := json.Marshal(cresp)

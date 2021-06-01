@@ -3,17 +3,15 @@ package main
 import "encoding/json"
 
 type Response struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      int             `json:"-"`
-	IDs     string          `json:"-"`
+	Jsonrpc string          `json:"jsonrpc"`
+	ID      int64           `json:"id"`
 	Result  json.RawMessage `json:"result"`
-	Error   json.RawMessage `json:"error,omitempty"`
+	Error   json.RawMessage
 }
 
 type Request struct {
-	JSONRPC string
-	Method  string
-	ID      int
-	IDs     string
-	Params  []json.RawMessage
+	Jsonrpc string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	ID      int           `json:"id"`
 }
