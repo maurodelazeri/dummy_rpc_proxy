@@ -1,0 +1,26 @@
+name: QuickNode Docker Image CI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CR_PAT }}
+    - name: Build docker image        
+      run: |
+        ls -l
+        echo "running build"
+        docker build -t ghcr.io/zinnion/dummy_rpc_proxy:${GITHUB_REF/refs\/tags\//} .
+        echo "pushing image"
+        docker push ghcr.io/zinnion/dummy_rpc_proxy:${GITHUB_REF/refs\/tags\//}
+        echo "DONE!"
