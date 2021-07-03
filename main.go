@@ -27,8 +27,8 @@ func init() {
 
 	app_port, ok := os.LookupEnv("APP_PORT")
 	if !ok {
-		fmt.Println("APP_PORT is not present")
-		os.Exit(1)
+		fmt.Println("APP_PORT is not present, setting default to 5000")
+		app_port = "5000"
 	}
 	quiknode_proxy.app_port = app_port
 
@@ -36,14 +36,12 @@ func init() {
 	downstream_fast_rpc_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_FAST_RPC")
 	if !ok {
 		fmt.Println("CLIENT_DOWN_STREAM_FAST_RPC is not present")
-		os.Exit(1)
 	}
 	quiknode_proxy.downstream_fast_rpc_client_addr = downstream_fast_rpc_client_addr
 
 	downstream_fast_ws_client_addr, ok := os.LookupEnv("CLIENT_DOWN_STREAM_FAST_WS")
 	if !ok {
 		fmt.Println("CLIENT_DOWN_STREAM_FAST_WS is not present")
-		os.Exit(1)
 	}
 	quiknode_proxy.downstream_fast_ws_client_addr = downstream_fast_ws_client_addr
 
