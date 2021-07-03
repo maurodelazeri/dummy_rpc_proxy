@@ -1,0 +1,25 @@
+name: Docker Images For Latest Branches
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CR_PAT }}    
+    - name: Build docker image
+      run: |
+        set -x
+        ls -l
+        echo "Running build"
+        docker build -t ghcr.io/zinnion/dummy_rpc_proxy:${GITHUB_REF/refs\/heads\//} .
+        echo "Pushing image"
+        docker push ghcr.io/zinnion/dummy_rpc_proxy:${GITHUB_REF/refs\/heads\//}
+        echo "Done"
